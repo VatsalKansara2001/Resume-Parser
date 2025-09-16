@@ -1,0 +1,270 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resume-parser-api
+  labels:
+    app: resume-parser
+    component: api
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: resume-parser
+      component: api
+  template:
+    metadata:
+      labels:
+        app: resume-parser
+        component: api
+    spec:
+      containers:
+      - name: api
+        image: resume-parser:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: resume-parser-secrets
+              key: database-url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: resume-parser-secrets
+              key: redis-url
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: resume-parser-secrets
+              key: secret-key
+        - name: GOOGLE_CLOUD_CREDENTIALS
+          value: "/etc/gcp/service-account.json"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: uploads
+          mountPath: /app/uploads
+        - name: gcp-credentials
+          mountPath: /etc/gcp
+          readOnly: true
+      volumes:
+      - name: uploads
+        persistentVolumeClaim:
+          claimName: resume-parser-uploads-pvc
+      - name: gcp-credentials
+        secret:
+          secretName: gcp-service-account
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: resume-parser-api-service
+  labels:
+    app: resume-parser
+    component: api
+spec:
+  selector:
+    app: resume-parser
+    component: api
+  ports:
+  - port: 80
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resume-parser-worker
+  labels:
+    app: resume-parser
+    component: worker
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: resume-parser
+      component: worker
+  template:
+    metadata:
+      labels:
+        app: resume-parser
+        component: worker
+    spec:
+      containers:
+      - name: worker
+        image: resume-parser:latest
+        imagePullPolicy: Always
+        command: ["celery"]
+        args: ["-A", "app.tasks.celery_app", "worker", "--loglevel=info", "--concurrency=2"]
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: resume-parser-secrets
+              key: database-url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: resume-parser-secrets
+              key: redis-url
+        - name: CELERY_BROKER_URL
+          valueFrom:
+            secretKeyRef:
+              name: resume-parser-secrets
+              key: redis-url
+        - name: CELERY_RESULT_BACKEND
+          valueFrom:
+            secretKeyRef:
+              name: resume-parser-secrets
+              key: redis-url
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        volumeMounts:
+        - name: uploads
+          mountPath: /app/uploads
+        - name: ml-models
+          mountPath: /app/ml_models
+      volumes:
+      - name: uploads
+        persistentVolumeClaim:
+          claimName: resume-parser-uploads-pvc
+      - name: ml-models
+        persistentVolumeClaim:
+          claimName: resume-parser-models-pvc
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: resume-parser-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+spec:
+  tls:
+  - hosts:
+    - api.resumeparser.com
+    secretName: resume-parser-tls
+  rules:
+  - host: api.resumeparser.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: resume-parser-api-service
+            port:
+              number: 80
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: resume-parser-uploads-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: nfs-client
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: resume-parser-models-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: nfs-client
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: resume-parser-api-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: resume-parser-api
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: resume-parser-worker-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: resume-parser-worker
+  minReplicas: 2
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 85

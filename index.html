@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Parser 2025 - Advanced AI-Powered Resume Analysis</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span class="material-icons">psychology</span>
+                <h1>Resume Parser 2025</h1>
+            </div>
+            <div class="nav-actions">
+                <button class="btn btn--outline nav-btn" id="themeToggle">
+                    <span class="material-icons">light_mode</span>
+                </button>
+                <button class="btn btn--primary nav-btn" id="settingsBtn">
+                    <span class="material-icons">settings</span>
+                    Settings
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="hero" id="heroSection">
+            <div class="container">
+                <div class="hero-content">
+                    <h1>AI-Powered Resume Parsing</h1>
+                    <p>Extract structured data from resumes with 95%+ accuracy using advanced NLP and ML technologies</p>
+                    <div class="hero-stats">
+                        <div class="stat">
+                            <span class="stat-number">1,247</span>
+                            <span class="stat-label">Resumes Processed</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number">95.3%</span>
+                            <span class="stat-label">Success Rate</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number">2.3s</span>
+                            <span class="stat-label">Avg Processing Time</span>
+                        </div>
+                    </div>
+                    <button class="btn btn--primary btn--lg cta-btn" onclick="showSection('upload')">
+                        Start Parsing Resumes
+                        <span class="material-icons">arrow_forward</span>
+                    </button>
+                </div>
+                <div class="hero-image">
+                    <img src="https://ppl-ai-code-interpreter-files.s3.amazonaws.com/web/direct-files/ceb4ef409f55ad6bce8b75a3f4bdef26/6a347ea9-fc07-45e0-bc78-112b631b164d/2c5673b4.png" alt="Resume Parser Architecture" class="architecture-diagram">
+                </div>
+            </div>
+        </section>
+
+        <!-- Upload Section -->
+        <section class="section hidden" id="uploadSection">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Upload Resumes</h2>
+                    <p>Drag and drop your resume files or click to browse. Supports PDF, DOCX, TXT, RTF, ODT formats.</p>
+                </div>
+                
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-content">
+                        <span class="material-icons upload-icon">cloud_upload</span>
+                        <h3>Drop files here or click to browse</h3>
+                        <p>Maximum file size: 10MB | Supported formats: PDF, DOCX, TXT, RTF, ODT</p>
+                        <button class="btn btn--primary" id="browseBtn">Browse Files</button>
+                        <input type="file" id="fileInput" multiple accept=".pdf,.docx,.txt,.rtf,.odt" class="hidden">
+                    </div>
+                </div>
+
+                <div class="upload-queue hidden" id="uploadQueue">
+                    <h3>Processing Queue</h3>
+                    <div class="queue-list" id="queueList"></div>
+                    <div class="queue-actions">
+                        <button class="btn btn--secondary" onclick="clearQueue()">Clear Queue</button>
+                        <button class="btn btn--primary" onclick="processAll()">Process All</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section class="section hidden" id="dashboardSection">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Processing Dashboard</h2>
+                    <p>Monitor real-time parsing status and progress</p>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Current Processing</h3>
+                            <div class="processing-item" id="currentProcessing">
+                                <div class="file-info">
+                                    <span class="file-name">john_smith_resume.pdf</span>
+                                    <span class="status status--info">Processing</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 75%"></div>
+                                </div>
+                                <div class="processing-details">
+                                    <span>75% complete - Extracting skills...</span>
+                                    <span>ETA: 8s</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Queue Status</h3>
+                            <div class="queue-stats">
+                                <div class="queue-stat">
+                                    <span class="queue-number">3</span>
+                                    <span class="queue-label">In Queue</span>
+                                </div>
+                                <div class="queue-stat">
+                                    <span class="queue-number">12</span>
+                                    <span class="queue-label">Completed</span>
+                                </div>
+                                <div class="queue-stat">
+                                    <span class="queue-number">1</span>
+                                    <span class="queue-label">Failed</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section class="section hidden" id="resultsSection">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Parsing Results</h2>
+                    <div class="results-actions">
+                        <button class="btn btn--outline" onclick="exportResults('json')">
+                            <span class="material-icons">download</span>
+                            Export JSON
+                        </button>
+                        <button class="btn btn--outline" onclick="exportResults('csv')">
+                            <span class="material-icons">download</span>
+                            Export CSV
+                        </button>
+                    </div>
+                </div>
+
+                <div class="results-container">
+                    <div class="results-sidebar">
+                        <div class="card">
+                            <div class="card__body">
+                                <h3>Resume Summary</h3>
+                                <div class="summary-item">
+                                    <span class="summary-label">Confidence Score</span>
+                                    <div class="confidence-bar">
+                                        <div class="confidence-fill" style="width: 92%"></div>
+                                        <span class="confidence-value">92%</span>
+                                    </div>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="summary-label">Processing Time</span>
+                                    <span class="summary-value">2.3s</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="summary-label">File Size</span>
+                                    <span class="summary-value">247 KB</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="results-main">
+                        <div class="results-tabs">
+                            <button class="tab-btn active" onclick="showTab('personal')">Personal Info</button>
+                            <button class="tab-btn" onclick="showTab('experience')">Experience</button>
+                            <button class="tab-btn" onclick="showTab('skills')">Skills</button>
+                            <button class="tab-btn" onclick="showTab('education')">Education</button>
+                            <button class="tab-btn" onclick="showTab('projects')">Projects</button>
+                        </div>
+
+                        <div class="tab-content active" id="personalTab">
+                            <div class="card">
+                                <div class="card__body">
+                                    <h3>Personal Information</h3>
+                                    <div class="info-grid" id="personalInfo"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-content hidden" id="experienceTab">
+                            <div class="card">
+                                <div class="card__body">
+                                    <h3>Work Experience</h3>
+                                    <div class="timeline" id="experienceTimeline"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-content hidden" id="skillsTab">
+                            <div class="card">
+                                <div class="card__body">
+                                    <h3>Skills Analysis</h3>
+                                    <div class="skills-container" id="skillsContainer"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-content hidden" id="educationTab">
+                            <div class="card">
+                                <div class="card__body">
+                                    <h3>Education</h3>
+                                    <div class="education-list" id="educationList"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-content hidden" id="projectsTab">
+                            <div class="card">
+                                <div class="card__body">
+                                    <h3>Projects & Certifications</h3>
+                                    <div class="projects-list" id="projectsList"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Job Matching Section -->
+        <section class="section hidden" id="matchingSection">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Job Matching</h2>
+                    <p>Compare resume against job descriptions for match scoring</p>
+                </div>
+
+                <div class="matching-container">
+                    <div class="matching-input">
+                        <div class="card">
+                            <div class="card__body">
+                                <h3>Job Description</h3>
+                                <textarea class="form-control" id="jobDescription" rows="8" placeholder="Paste job description here...">We are seeking a Senior Python Developer with 5+ years of experience in building scalable web applications using Python, Django, and cloud technologies like AWS...</textarea>
+                                <button class="btn btn--primary mt-8" onclick="analyzeMatch()">
+                                    <span class="material-icons">analytics</span>
+                                    Analyze Match
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="matching-results" id="matchingResults">
+                        <div class="card">
+                            <div class="card__body">
+                                <h3>Match Analysis</h3>
+                                <div class="match-score">
+                                    <div class="score-circle">
+                                        <span class="score-value">87%</span>
+                                        <span class="score-label">Overall Match</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="match-breakdown">
+                                    <div class="breakdown-item">
+                                        <span class="breakdown-label">Skills Match</span>
+                                        <div class="breakdown-bar">
+                                            <div class="breakdown-fill" style="width: 92%"></div>
+                                            <span class="breakdown-value">92%</span>
+                                        </div>
+                                    </div>
+                                    <div class="breakdown-item">
+                                        <span class="breakdown-label">Experience</span>
+                                        <div class="breakdown-bar">
+                                            <div class="breakdown-fill" style="width: 85%"></div>
+                                            <span class="breakdown-value">85%</span>
+                                        </div>
+                                    </div>
+                                    <div class="breakdown-item">
+                                        <span class="breakdown-label">Education</span>
+                                        <div class="breakdown-bar">
+                                            <div class="breakdown-fill" style="width: 96%"></div>
+                                            <span class="breakdown-value">96%</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="match-details">
+                                    <div class="matched-skills">
+                                        <h4>Matched Skills</h4>
+                                        <div class="skill-tags" id="matchedSkills"></div>
+                                    </div>
+                                    <div class="missing-skills">
+                                        <h4>Missing Skills</h4>
+                                        <div class="skill-tags" id="missingSkills"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analytics Section -->
+        <section class="section hidden" id="analyticsSection">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Analytics Dashboard</h2>
+                    <p>System performance and parsing statistics</p>
+                </div>
+
+                <div class="analytics-grid">
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Success Rate</h3>
+                            <div class="chart-container" style="position: relative; height: 200px;">
+                                <canvas id="successChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Top Skills Detected</h3>
+                            <div class="chart-container" style="position: relative; height: 200px;">
+                                <canvas id="skillsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Processing Time Trends</h3>
+                            <div class="chart-container" style="position: relative; height: 200px;">
+                                <canvas id="performanceChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>System Metrics</h3>
+                            <div class="metrics-list">
+                                <div class="metric-item">
+                                    <span class="metric-label">Queue Length</span>
+                                    <span class="metric-value">3</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-label">Active Connections</span>
+                                    <span class="metric-value">47</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-label">Memory Usage</span>
+                                    <span class="metric-value">68%</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-label">CPU Usage</span>
+                                    <span class="metric-value">34%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Settings Modal -->
+    <div class="modal hidden" id="settingsModal">
+        <div class="modal-overlay" onclick="closeModal('settingsModal')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Settings & Configuration</h3>
+                <button class="modal-close" onclick="closeModal('settingsModal')">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-tabs">
+                    <button class="settings-tab active" onclick="showSettingsTab('general')">General</button>
+                    <button class="settings-tab" onclick="showSettingsTab('processing')">Processing</button>
+                    <button class="settings-tab" onclick="showSettingsTab('privacy')">Privacy</button>
+                    <button class="settings-tab" onclick="showSettingsTab('api')">API</button>
+                </div>
+
+                <div class="settings-content">
+                    <div class="settings-tab-content active" id="generalSettings">
+                        <div class="form-group">
+                            <label class="form-label">Theme</label>
+                            <select class="form-control" id="themeSelect">
+                                <option value="auto">Auto (System)</option>
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Language</label>
+                            <select class="form-control">
+                                <option value="en">English</option>
+                                <option value="es">Spanish</option>
+                                <option value="fr">French</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-tab-content hidden" id="processingSettings">
+                        <div class="form-group">
+                            <label class="form-label">OCR Engine</label>
+                            <select class="form-control">
+                                <option value="tesseract">Tesseract</option>
+                                <option value="google-vision">Google Vision</option>
+                                <option value="aws-textract">AWS Textract</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Processing Priority</label>
+                            <select class="form-control">
+                                <option value="standard">Standard</option>
+                                <option value="high">High Priority</option>
+                                <option value="bulk">Bulk Processing</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-tab-content hidden" id="privacySettings">
+                        <div class="form-group">
+                            <label class="form-label">Data Retention</label>
+                            <select class="form-control">
+                                <option value="30">30 days</option>
+                                <option value="90">90 days</option>
+                                <option value="365">1 year</option>
+                                <option value="never">Never delete</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="gdprConsent" checked>
+                                <label for="gdprConsent">GDPR Compliance Mode</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-tab-content hidden" id="apiSettings">
+                        <div class="form-group">
+                            <label class="form-label">Webhook URL</label>
+                            <input type="url" class="form-control" placeholder="https://your-api.com/webhook">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">API Key</label>
+                            <div class="api-key-group">
+                                <input type="password" class="form-control" value="rp2025_abc123xyz789" readonly>
+                                <button class="btn btn--outline">
+                                    <span class="material-icons">refresh</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--outline" onclick="closeModal('settingsModal')">Cancel</button>
+                <button class="btn btn--primary" onclick="saveSettings()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="bottom-nav">
+        <button class="nav-tab active" onclick="showSection('home')" data-section="home">
+            <span class="material-icons">home</span>
+            <span>Home</span>
+        </button>
+        <button class="nav-tab" onclick="showSection('upload')" data-section="upload">
+            <span class="material-icons">cloud_upload</span>
+            <span>Upload</span>
+        </button>
+        <button class="nav-tab" onclick="showSection('dashboard')" data-section="dashboard">
+            <span class="material-icons">dashboard</span>
+            <span>Dashboard</span>
+        </button>
+        <button class="nav-tab" onclick="showSection('results')" data-section="results">
+            <span class="material-icons">description</span>
+            <span>Results</span>
+        </button>
+        <button class="nav-tab" onclick="showSection('matching')" data-section="matching">
+            <span class="material-icons">analytics</span>
+            <span>Matching</span>
+        </button>
+        <button class="nav-tab" onclick="showSection('analytics')" data-section="analytics">
+            <span class="material-icons">insights</span>
+            <span>Analytics</span>
+        </button>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
